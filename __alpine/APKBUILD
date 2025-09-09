@@ -1,0 +1,27 @@
+# Maintainer: J.F.Gratton <jean-francois@famillegratton.net>
+# Packager: Package builder <builder@famillegratton.net>
+pkgname=dvol
+pkgver=2.00.00
+pkgrel=1
+pkgdir=/data/packages
+builddir="$startdir/src/BUILD"
+pkgdesc="Container volume backup and restore"
+url="https://git.famillegratton.net:3000/devops/dvol.git"
+arch=x86_64
+license=GPL2
+install="$pkgname.pre-install $pkgname.post-install $pkgname.pre-deinstall $pkgname.post-deinstall"
+binaryname=dvol
+
+build() {
+	pwd
+	mkdir -p "$builddir" && cd "$builddir"/.. && rm -rf BUILD && cp -R "$startdir"/../src . && mv src BUILD
+    cd "$builddir"
+    make -f "$startdir"/Makefile prepare
+    CGO_ENABLED=0 go build -o "$binaryname".exe .
+}
+
+package() {
+        make -f "$startdir"/Makefile BUILDDIR="$builddir" PREFIX=/opt PKGNM="$binaryname" DESTDIR="$pkgdir" install
+}
+
+

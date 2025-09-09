@@ -1,0 +1,106 @@
+// dvol
+// Written by J.F. Gratton <jean-francois@famillegratton.net>
+// Updated: 2025/08/09
+// Original filename: src/rest/backup.go
+
+package rest
+
+import (
+	"compress/gzip"
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	ce "github.com/jeanfrancoisgratton/customError/v2"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v2/logging"
+
+	"dvol/types"
+)
+
+// BackupVolume streams /containers/{id}/archive (download) to a local file (optionally gzipped).
+func BackupVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {
+	image := types.Image
+	attachedContainers, err := getContainersUsingVolume(client, base, version, volumeName)
+	if err != nil {
+		return err
+	}
+	if len(attachedContainers) > 0 {
+		if e := stopContainers(client, base, version, attachedContainers); e != nil {
+			return e
+		}
+	}
+
+	// Create a temp container bound to the volume and start it
+	containerID, cerr := createTempContainer(client, base, version, image, volumeName)
+	if cerr != nil {
+		return cerr
+	}
+	if e := startContainer(client, base, version, containerID); e != nil {
+		return e
+	}
+
+	// Build streaming GET request to fetch /data from the temp container
+	copyURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/data"
+	req, rerr := http.NewRequest(http.MethodGet, copyURL, nil)
+	if rerr != nil {
+		e := ce.CustomError{Title: "Failed to build archive request", Message: rerr.Error(), Code: 401}
+		hfl.Errorf(e.ErrorNoColor())
+		return &e
+	}
+
+	// Apply overall stream timeout for the whole backup transfer
+	sctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.Timeout)*time.Minute)
+	defer cancel()
+	req = req.WithContext(sctx)
+
+	resp, doErr := client.Do(req)
+	if doErr != nil {
+		e := ce.CustomError{Title: "Failed to retrieve archive path from container", Message: doErr.Error(), Code: 401}
+		hfl.Errorf(e.ErrorNoColor())
+		return &e
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		e := ce.CustomError{Title: "Error retrieving archive", Message: fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(body)), Code: 402}
+		hfl.Errorf(e.ErrorNoColor())
+		return &e
+	}
+
+	// Open destination file
+	outf, ferr := os.Create(archivePath)
+	if ferr != nil {
+		e := ce.CustomError{Title: "Failed to create archive file", Message: ferr.Error(), Code: 403}
+		hfl.Errorf(e.ErrorNoColor())
+		return &e
+	}
+	defer outf.Close()
+
+	// If .tar.gz/.tgz, wrap the destination in gzip; DO NOT re-tar — the daemon already sends a tar stream
+	var writer io.Writer = outf
+	var gz *gzip.Writer
+	if strings.HasSuffix(archivePath, ".tar.gz") || strings.HasSuffix(archivePath, ".tgz") {
+		gz = gzip.NewWriter(outf)
+		defer gz.Close()
+		writer = gz
+	}
+
+	// Directly copy the daemon's tar stream to the destination (raw or gz-wrapped)
+	if _, werr := io.Copy(writer, resp.Body); werr != nil {
+		e := ce.CustomError{Title: "Failed to write data to archive", Message: werr.Error(), Code: 405}
+		hfl.Errorf(e.ErrorNoColor())
+		return &e
+	}
+
+	if !types.NoCleanup {
+		if e := stopAndRemoveContainer(client, base, version, containerID); e != nil {
+			return e
+		}
+	}
+	return startContainers(client, base, version, attachedContainers)
+}
