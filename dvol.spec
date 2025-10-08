@@ -61,6 +61,13 @@ install -Dpm 0755 %{_sourcedir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryn
 
 
 %changelog
+* Wed Oct 08 2025 Binary package builder <builder@famillegratton.net> 2.10.00-0
+- package version bump (jean-francois@famillegratton.net)
+- Interim attempt at building a valid package (jean-
+  francois@famillegratton.net)
+- Added verbosity (jean-francois@famillegratton.net)
+- first commit (jean-francois@famillegratton.net)
+
 * Thu Jun 19 2025 APK Builder <builder@famillegratton.net> 1.10.00-0
 - Fixed backup and restore (jean-francois@famillegratton.net)
 - refactored subpackage (jean-francois@famillegratton.net)
