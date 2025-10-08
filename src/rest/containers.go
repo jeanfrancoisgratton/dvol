@@ -15,9 +15,9 @@ import (
 	"net/http"
 	"time"
 
-	ce "github.com/jeanfrancoisgratton/customError/v2"
-	hf "github.com/jeanfrancoisgratton/helperFunctions/v2"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v2/logging"
+	ce "github.com/jeanfrancoisgratton/customError/v3"
+	hflog "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
 
 	"dvol/types"
 )
@@ -33,7 +33,7 @@ func getContainersUsingVolume(client *http.Client, base, version, volumeName str
 	resp, err := client.Do(req)
 	if err != nil {
 		gerr := ce.CustomError{Title: "Error listing the containers using the volume", Message: err.Error(), Code: 301}
-		hfl.Errorf(gerr.ErrorNoColor())
+		hflog.Errorf(gerr.ErrorNoColor())
 		return nil, &gerr
 	}
 	defer resp.Body.Close()
@@ -49,7 +49,7 @@ func getContainersUsingVolume(client *http.Client, base, version, volumeName str
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&containers); err != nil {
 		perr := ce.CustomError{Title: "Error decoding containers list", Message: err.Error(), Code: 302}
-		hfl.Errorf(perr.ErrorNoColor())
+		hflog.Errorf(perr.ErrorNoColor())
 		return nil, &perr
 	}
 
@@ -79,7 +79,7 @@ func stopContainers(client *http.Client, base, version string, ids []string) *ce
 		resp, err := client.Do(req)
 		if err != nil {
 			gerr := ce.CustomError{Title: "Error stopping container", Message: err.Error(), Code: 303}
-			hfl.Errorf(gerr.ErrorNoColor())
+			hflog.Errorf(gerr.ErrorNoColor())
 			return &gerr
 		}
 		resp.Body.Close()
@@ -98,7 +98,7 @@ func startContainers(client *http.Client, base, version string, ids []string) *c
 		resp, err := client.Do(req)
 		if err != nil {
 			gerr := ce.CustomError{Title: "Error starting container", Message: err.Error(), Code: 304}
-			hfl.Errorf(gerr.ErrorNoColor())
+			hflog.Errorf(gerr.ErrorNoColor())
 			return &gerr
 		}
 		resp.Body.Close()
@@ -145,7 +145,7 @@ func createTempContainer(client *http.Client, base, version, image, volumeName s
 		return "", &ce.CustomError{Title: "Error reading container create reply", Message: "empty ID or decode failure", Code: 354}
 	}
 
-	hfl.Infof("Temp container created: %s", hf.Blue(res.ID[:12]))
+	hflog.Infof("Temp container created: %s", hftx.Blue(res.ID[:12]))
 	return res.ID, nil
 }
 
@@ -165,15 +165,13 @@ func startContainer(client *http.Client, base, version, id string) *ce.CustomErr
 }
 
 func stopAndRemoveContainer(client *http.Client, base, version, id string) *ce.CustomError {
-	if !types.Quiet {
-		fmt.Println("Cleaning up")
-	}
-	hfl.Debugf("Removing temporary container %s", id)
+	hflog.Debugf("Removing temporary container %s", id)
 	stop := APIPath(base, version, "containers", id, "stop")
 	_, err := client.Post(stop, "", nil)
 	if err != nil {
+		fmt.Printf("%s containerID %s could not be stopped", hftx.FatalSkullBonesGlyph(""), hftx.Blue(id))
 		perr := ce.CustomError{Title: fmt.Sprintf("Error stopping %s", id), Message: err.Error(), Code: 303}
-		hfl.Errorf(perr.ErrorNoColor())
+		hflog.Errorf(perr.ErrorNoColor())
 		return &perr
 	}
 

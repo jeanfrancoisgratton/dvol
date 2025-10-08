@@ -16,9 +16,10 @@ import (
 	"os"
 	"time"
 
-	ce "github.com/jeanfrancoisgratton/customError/v2"
-	hf "github.com/jeanfrancoisgratton/helperFunctions/v2"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v2/logging"
+	ce "github.com/jeanfrancoisgratton/customError/v3"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
+
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 )
@@ -51,7 +52,7 @@ func DeleteVolume(client *http.Client, base, apiVersion, volumeName string) *ce.
 		return &cerr
 	}
 	if !types.Quiet {
-		fmt.Sprintf("Volume %s %s.\n", volumeName, hf.Green("deleted"))
+		fmt.Printf("Volume %s %s.\n", volumeName, hftx.Green("deleted"))
 	}
 	return nil
 }
@@ -107,7 +108,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 	defer cancel()
 
 	if !types.Quiet {
-		fmt.Printf("Deleting and recreating volume %s\n", hf.Green(volume))
+		fmt.Printf("Deleting and recreating volume %s\n", hftx.Green(volume))
 	}
 	hfl.Infof("Deleting volume %s\n", volume)
 	// DELETE /volumes/{name}

@@ -12,9 +12,9 @@ import (
 	"runtime"
 	"strings"
 
-	ce "github.com/jeanfrancoisgratton/customError/v2"
-	hf "github.com/jeanfrancoisgratton/helperFunctions/v2"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v2/logging"
+	ce "github.com/jeanfrancoisgratton/customError/v3"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
+	hftfx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +22,7 @@ var rootCmd = &cobra.Command{
 	Use:     "dvol",
 	Short:   "Volume backup/restore utility for Docker/Podman",
 	Long:    "Backup and restore Docker/Podman volumes using the REST API, with optional gzip compression.",
-	Version: hf.White(fmt.Sprintf("2.00.00-0-%s (2025.08.24)", runtime.GOARCH)),
+	Version: hftfx.White(fmt.Sprintf("2.10.00-%s (2025.10.08)", runtime.GOARCH)),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if types.LogLevel != "none" {
 			if err := hfl.Init(filepath.Join(os.Getenv("HOME"), ".local", "state", "dvol.log"),
@@ -150,8 +150,8 @@ func Execute() {
 
 func init() {
 	rootCmd.DisableAutoGenTag = true
-	rootCmd.CompletionOptions.DisableDefaultCmd = true
-	rootCmd.AddCommand(clCmd, restoreCmd, backupCmd, lsVolCmd, rmVolCmd)
+	rootCmd.CompletionOptions.DisableDefaultCmd = false
+	rootCmd.AddCommand(completionCmd, clCmd, restoreCmd, backupCmd, lsVolCmd, rmVolCmd)
 
 	rootCmd.PersistentFlags().StringVarP(&types.LogLevel, "loglevel", "l", "none", "Log level: none|debug|info|error")
 	rootCmd.PersistentFlags().StringVarP(&types.DockerHost, "host", "H", types.DockerHost, "Docker daemon host")
@@ -167,12 +167,11 @@ func init() {
 
 func changeLog() {
 	fmt.Printf("\x1bc")
-
 	fmt.Println("CHANGELOG")
-
 	fmt.Print(`
 VERSION		DATE			COMMENT
--------		----			-------
+-------		----------		-------
+2.10.00		2025.10.08		Go version update, builddeps update, verbose output
 2.00.00		2025.08.24		Full rewrite
 1.11.00		2025.06.19		Fixed unix:// usage, added the -q flag
 1.10.00		2025.06.17		Fixed backup, volumes are now destroyed before restore

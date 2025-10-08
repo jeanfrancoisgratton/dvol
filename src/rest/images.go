@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/docker/docker/pkg/jsonmessage"
-	ce "github.com/jeanfrancoisgratton/customError/v2"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v2/logging"
+	ce "github.com/jeanfrancoisgratton/customError/v3"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
 
 	"dvol/types"
 )

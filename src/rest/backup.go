@@ -15,16 +15,31 @@ import (
 	"strings"
 	"time"
 
-	ce "github.com/jeanfrancoisgratton/customError/v2"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v2/logging"
-
 	"dvol/types"
+
+	ce "github.com/jeanfrancoisgratton/customError/v3"
+	hflog "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
 )
 
 // BackupVolume streams /containers/{id}/archive (download) to a local file (optionally gzipped).
 func BackupVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {
 	image := types.Image
+
+	if !types.Quiet {
+		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Backing up %s to %s", volumeName, archivePath)))
+	}
 	attachedContainers, err := getContainersUsingVolume(client, base, version, volumeName)
+	if !types.Quiet {
+		attachedResult := ""
+		if len(attachedContainers) == 0 {
+			attachedResult = hftx.InfoGlyph("No running containers were attached to the volume to be backed up")
+		} else {
+			attachedResult = hftx.InfoGlyph(fmt.Sprintf("%d running containers are attached to the volume. They will be restarted after the backup",
+				len(attachedContainers)))
+		}
+		fmt.Println(attachedResult)
+	}
 	if err != nil {
 		return err
 	}
@@ -48,7 +63,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	req, rerr := http.NewRequest(http.MethodGet, copyURL, nil)
 	if rerr != nil {
 		e := ce.CustomError{Title: "Failed to build archive request", Message: rerr.Error(), Code: 401}
-		hfl.Errorf(e.ErrorNoColor())
+		hflog.Errorf(e.ErrorNoColor())
 		return &e
 	}
 
@@ -60,7 +75,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	resp, doErr := client.Do(req)
 	if doErr != nil {
 		e := ce.CustomError{Title: "Failed to retrieve archive path from container", Message: doErr.Error(), Code: 401}
-		hfl.Errorf(e.ErrorNoColor())
+		hflog.Errorf(e.ErrorNoColor())
 		return &e
 	}
 	defer resp.Body.Close()
@@ -68,7 +83,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		e := ce.CustomError{Title: "Error retrieving archive", Message: fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(body)), Code: 402}
-		hfl.Errorf(e.ErrorNoColor())
+		hflog.Errorf(e.ErrorNoColor())
 		return &e
 	}
 
@@ -76,7 +91,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	outf, ferr := os.Create(archivePath)
 	if ferr != nil {
 		e := ce.CustomError{Title: "Failed to create archive file", Message: ferr.Error(), Code: 403}
-		hfl.Errorf(e.ErrorNoColor())
+		hflog.Errorf(e.ErrorNoColor())
 		return &e
 	}
 	defer outf.Close()
@@ -93,8 +108,11 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	// Directly copy the daemon's tar stream to the destination (raw or gz-wrapped)
 	if _, werr := io.Copy(writer, resp.Body); werr != nil {
 		e := ce.CustomError{Title: "Failed to write data to archive", Message: werr.Error(), Code: 405}
-		hfl.Errorf(e.ErrorNoColor())
+		hflog.Errorf(e.ErrorNoColor())
 		return &e
+	}
+	if !types.Quiet {
+		fmt.Printf("%s volume %s backed up as %s\n", hftx.GreenOkGlyph(""), hftx.Blue(volumeName), hftx.Blue(archivePath))
 	}
 
 	if !types.NoCleanup {
