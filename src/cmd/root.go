@@ -171,7 +171,7 @@ func changeLog() {
 	fmt.Print(`
 VERSION		DATE			COMMENT
 -------		----------		-------
-2.10.00		2025.10.08		Go version update, builddeps update, verbose output
+2.10.00		2025.10.08		Go version update, builddeps update, verbose output, added {ba,z}sh completion
 2.00.00		2025.08.24		Full rewrite
 1.11.00		2025.06.19		Fixed unix:// usage, added the -q flag
 1.10.00		2025.06.17		Fixed backup, volumes are now destroyed before restore
