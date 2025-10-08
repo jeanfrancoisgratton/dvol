@@ -1,8 +1,8 @@
 # Maintainer: J.F.Gratton <jean-francois@famillegratton.net>
 # Packager: Package builder <builder@famillegratton.net>
 pkgname=dvol
-pkgver=2.00.00
-pkgrel=1
+pkgver=2.10.00
+pkgrel=0
 pkgdir=/data/packages
 builddir="$startdir/src/BUILD"
 pkgdesc="Container volume backup and restore"
