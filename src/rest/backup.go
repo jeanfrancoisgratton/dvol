@@ -44,12 +44,18 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 		return err
 	}
 	if len(attachedContainers) > 0 {
+		if !types.Quiet {
+			fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Temporarily stopping the running container(s) using %s", volumeName)))
+		}
 		if e := stopContainers(client, base, version, attachedContainers); e != nil {
 			return e
 		}
 	}
 
 	// Create a temp container bound to the volume and start it
+	if !types.Quiet {
+		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Creating and starting a temp Alpine container to temporarily attach the volume %s", volumeName)))
+	}
 	containerID, cerr := createTempContainer(client, base, version, image, volumeName)
 	if cerr != nil {
 		return cerr
@@ -111,14 +117,25 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 		hflog.Errorf(e.ErrorNoColor())
 		return &e
 	}
-	if !types.Quiet {
-		fmt.Printf("%s volume %s backed up as %s\n", hftx.GreenOkGlyph(""), hftx.Blue(volumeName), hftx.Blue(archivePath))
-	}
 
 	if !types.NoCleanup {
+		if !types.Quiet {
+			fmt.Println(hftx.InProgressGlyph("Cleanup: stoping and removing the temp Alpine container"))
+		}
 		if e := stopAndRemoveContainer(client, base, version, containerID); e != nil {
 			return e
 		}
 	}
-	return startContainers(client, base, version, attachedContainers)
+
+	// restart the containers that were stopped before the backup
+	if !types.Quiet {
+		fmt.Println(hftx.InProgressGlyph("Restarting the containers that were stopped before the backup"))
+	}
+	if scerr := startContainers(client, base, version, attachedContainers); scerr != nil {
+		return scerr
+	}
+	if !types.Quiet {
+		fmt.Printf("%s volume %s backed up as %s\n", hftx.EnabledGlyph(""), hftx.Blue(volumeName), hftx.Blue(archivePath))
+	}
+	return nil
 }

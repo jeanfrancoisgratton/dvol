@@ -12,7 +12,7 @@
 %define _build_id_links none
 %define _name dvol
 %define _prefix /opt
-%define _version 2.10.00
+%define _version 2.10.01
 %define _rel 0
 #%define _arch x86_64
 %define _binaryname dvol
