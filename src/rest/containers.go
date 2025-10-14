@@ -25,7 +25,7 @@ import (
 // Returns IDs of RUNNING containers that have a volume mount matching volumeName.
 func getContainersUsingVolume(client *http.Client, base, version, volumeName string) ([]string, *ce.CustomError) {
 	url := APIPath(base, version, "containers", "json") + "?all=true"
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 	defer cancel()
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
 	req = req.WithContext(ctx)
@@ -77,7 +77,7 @@ func getContainersUsingVolume(client *http.Client, base, version, volumeName str
 func stopContainers(client *http.Client, base, version string, ids []string) *ce.CustomError {
 	for _, id := range ids {
 		url := APIPath(base, version, "containers", id, "stop")
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 		defer cancel()
 		req, _ := http.NewRequest(http.MethodPost, url, nil)
 		req = req.WithContext(ctx)
@@ -99,7 +99,7 @@ func stopContainers(client *http.Client, base, version string, ids []string) *ce
 func startContainers(client *http.Client, base, version string, ids []string) *ce.CustomError {
 	for _, id := range ids {
 		url := APIPath(base, version, "containers", id, "start")
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 		defer cancel()
 		req, _ := http.NewRequest(http.MethodPost, url, nil)
 		req = req.WithContext(ctx)
@@ -142,7 +142,7 @@ func createTempContainer(client *http.Client, base, version, image, volumeName s
 	}
 
 	url := APIPath(base, version, "containers", "create")
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 	defer cancel()
 	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 	req.Header.Set("Content-Type", "application/json")
@@ -176,7 +176,7 @@ func createTempContainer(client *http.Client, base, version, image, volumeName s
 
 func startContainer(client *http.Client, base, version, id string) *ce.CustomError {
 	url := APIPath(base, version, "containers", id, "start")
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 	defer cancel()
 	req, _ := http.NewRequest(http.MethodPost, url, nil)
 	req = req.WithContext(ctx)

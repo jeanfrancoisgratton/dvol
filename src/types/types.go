@@ -13,8 +13,8 @@ var FallbackAPIVersion = "1.50"
 var NoCleanup = false
 var Quiet = false
 var LogLevel = "none"
-var FastfailTimeout = 60 // HttpTimeout
-var Timeout = 30
+var HandshakeTimeout = 30 // Http handshake session timeout in SECONDS
+var SessionTimeout = 60   // Http session timeout in MINUTES
 
 type DockerVolume struct {
 	Name       string            `json:"Name"`

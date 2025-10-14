@@ -160,8 +160,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&types.Quiet, "quiet", "q", false, "Quiet output")
 	rootCmd.PersistentFlags().StringVarP(&types.APIVersion, "api", "a", "", "Pin Docker API version (e.g., 1.50)")
 
-	rootCmd.PersistentFlags().IntVarP(&types.FastfailTimeout, "fastfail-timeout", "f", 60, "HTTP handshake timeout value in seconds")
-	rootCmd.PersistentFlags().IntVarP(&types.Timeout, "timeout", "t", 30, "HTTP streaming timeout value in minutes")
+	rootCmd.PersistentFlags().IntVarP(&types.HandshakeTimeout, "fastfail-timeout", "f", 30, "HTTP handshake timeout value in seconds")
+	rootCmd.PersistentFlags().IntVarP(&types.SessionTimeout, "timeout", "t", 60, "HTTP streaming timeout value in minutes")
 
 }
 

@@ -17,6 +17,7 @@ import (
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
 	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
 	"github.com/ulikunitz/xz"
 
 	"dvol/types"
@@ -26,22 +27,47 @@ import (
 // NOTE: requires: import "context" and "time"
 func RestoreVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {
 	image := types.Image
+	if !types.Quiet {
+		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Restoring %s from %s", hftx.Blue(volumeName), hftx.Blue(archivePath))))
+		if types.HandshakeTimeout != 60 {
+			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP handshake (fast-fail) timeout set to %d seconds", types.HandshakeTimeout)))
+		}
+		if types.SessionTimeout != 60 {
+			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP session timeout set to %d minutes", types.SessionTimeout)))
+		}
+	}
 	if err := ensureImageExists(client, base, version, image); err != nil {
 		return err
 	}
 
 	// Stop containers using the volume
 	attachedContainers, err := getContainersUsingVolume(client, base, version, volumeName)
+	if !types.Quiet {
+		attachedResult := ""
+		if len(attachedContainers) == 0 {
+			attachedResult = hftx.InfoGlyph("No running containers were attached to the volume to be backed up")
+		} else {
+			attachedResult = hftx.InfoGlyph(fmt.Sprintf("%d running containers are attached to the volume. They will be restarted after the backup",
+				len(attachedContainers)))
+		}
+		fmt.Println(attachedResult)
+	}
 	if err != nil {
 		return err
 	}
 	if len(attachedContainers) > 0 {
+		if !types.Quiet {
+			fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Stopping the %d container(s) attached to %s", len(attachedContainers), volumeName)))
+		}
 		if e := stopContainers(client, base, version, attachedContainers); e != nil {
 			return e
 		}
 	}
 
 	// Destroy & recreate the volume before restore
+	if !types.Quiet {
+		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Deleting the volume %s before creating a brand-new restored volume", volumeName)))
+	}
 	if e := deleteAndRecreateVolume(client, base, version, volumeName); e != nil {
 		return e
 	}
@@ -96,7 +122,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 	}
 	req.Header.Set("Content-Type", "application/x-tar")
 
-	sctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.Timeout)*time.Minute)
+	sctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.SessionTimeout)*time.Minute)
 	defer cancel()
 	req = req.WithContext(sctx)
 

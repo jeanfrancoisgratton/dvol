@@ -17,19 +17,20 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	ce "github.com/jeanfrancoisgratton/customError/v3"
 	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
 
 	"dvol/types"
 )
 
 // ensureImageExists pulls image if missing.
 // Timeouts policy:
-//   - Fast-fail (types.FastfailTimeout) for the quick inspect call
-//   - Streaming overall cap (types.Timeout) for the pull request itself
+//   - Fast-fail (types.HandshakeTimeout) for the quick inspect call
+//   - Streaming overall cap (types.SessionTimeout) for the pull request itself
 func ensureImageExists(client *http.Client, base, version, image string) *ce.CustomError {
 	// Try inspect
 	inspectURL := APIPath(base, version, "images", "json") + "?all=true"
 	{
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 		defer cancel()
 		req, _ := http.NewRequest(http.MethodGet, inspectURL, nil)
 		req = req.WithContext(ctx)
@@ -44,6 +45,9 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 				for _, im := range imgs {
 					for _, t := range im.RepoTags {
 						if t == image {
+							if !types.Quiet {
+								fmt.Println(hftx.InfoGlyph(fmt.Sprintf("Image %s is already present, no need to pull it", image)))
+							}
 							return nil
 						}
 					}
@@ -54,13 +58,19 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 		}
 	}
 
-	// Pull (can be long): use overall stream timeout (types.Timeout)
+	// The image is not on the daemon, we need to pull it
+	// Pull (can be long): use overall stream timeout (types.SessionTimeout)
 	pullURL := APIPath(base, version, "images", "create") + "?fromImage=" + image
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.Timeout)*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.SessionTimeout)*time.Minute)
 	defer cancel()
 	req, err := http.NewRequest(http.MethodPost, pullURL, nil)
 	if err != nil {
-		perr := ce.CustomError{Title: "Error building image pull request", Message: err.Error(), Code: 200}
+		title := "Error building the image pull request"
+		message := err.Error()
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+		}
+		perr := ce.CustomError{Title: title, Message: message, Code: 200}
 		hfl.Errorf(perr.ErrorNoColor())
 		return &perr
 	}
@@ -68,7 +78,12 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 
 	resp, err := client.Do(req)
 	if err != nil {
-		perr := ce.CustomError{Title: "Error when pulling image", Message: err.Error(), Code: 201}
+		title := "Error when pulling the image"
+		message := err.Error()
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+		}
+		perr := ce.CustomError{Title: title, Message: message, Code: 201}
 		hfl.Errorf(perr.ErrorNoColor())
 		return &perr
 	}
@@ -76,9 +91,14 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
-		perr := ce.CustomError{Title: "Error when pulling image",
-			Message: fmt.Sprintf("HTTP code: %d : %s", resp.StatusCode, string(body)), Code: 201}
+		title := "Error pulling the image"
+		message := fmt.Sprintf("HTTP code: %d : %s", resp.StatusCode, string(body))
+		perr := ce.CustomError{Title: title, Message: message, Code: 201}
 		hfl.Errorf(perr.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+		}
+
 		return &perr
 	}
 
@@ -92,8 +112,13 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 			if err == io.EOF {
 				break
 			}
-			perr := ce.CustomError{Title: "Error decoding image pull stream", Message: err.Error(), Code: 202}
+			title := "Error decoding the image pull stream"
+			message := err.Error()
+			perr := ce.CustomError{Title: title, Message: message, Code: 202}
 			hfl.Errorf(perr.ErrorNoColor())
+			if !types.Quiet {
+				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			}
 			return &perr
 		}
 		// Keep it simple; respect quiet mode externally if desired.

@@ -104,7 +104,7 @@ func parseTimeString(s string) time.Time {
 }
 
 func deleteAndRecreateVolume(client *http.Client, base, version, volume string) *ce.CustomError {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 	defer cancel()
 
 	if !types.Quiet {
@@ -115,7 +115,9 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 	deleteURL := APIPath(base, version, "volumes", volume)
 	req, err := http.NewRequest(http.MethodDelete, deleteURL, nil)
 	if err != nil {
-		rerr := ce.CustomError{Title: "Error building http request", Message: err.Error(), Code: 601}
+		title := "Error building http request"
+		message := err.Error()
+		rerr := ce.CustomError{Title: title, Message: message, Code: 601}
 		hfl.Errorf(rerr.ErrorNoColor())
 		return &rerr
 	}

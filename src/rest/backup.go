@@ -28,6 +28,12 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 
 	if !types.Quiet {
 		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Backing up %s to %s", volumeName, archivePath)))
+		if types.HandshakeTimeout != 60 {
+			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP handshake (fast-fail) timeout set to %d seconds", types.HandshakeTimeout)))
+		}
+		if types.SessionTimeout != 60 {
+			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP session timeout set to %d minutes", types.SessionTimeout)))
+		}
 	}
 	attachedContainers, err := getContainersUsingVolume(client, base, version, volumeName)
 	if !types.Quiet {
@@ -74,7 +80,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	}
 
 	// Apply overall stream timeout for the whole backup transfer
-	sctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.Timeout)*time.Minute)
+	sctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.SessionTimeout)*time.Minute)
 	defer cancel()
 	req = req.WithContext(sctx)
 

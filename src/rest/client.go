@@ -24,8 +24,8 @@ func NewClient() (*http.Client, string, string, *ce.CustomError) {
 	var transport *http.Transport
 	var base string
 
-	// Fast-fail dialer derived from types.FastfailTimeout
-	fast := time.Duration(types.FastfailTimeout) * time.Second
+	// Fast-fail dialer derived from types.HandshakeTimeout
+	fast := time.Duration(types.HandshakeTimeout) * time.Second
 
 	if types.DockerHost == "" || strings.HasPrefix(types.DockerHost, "unix://") {
 		socket := "/var/run/docker.sock"
@@ -69,7 +69,7 @@ func NewClient() (*http.Client, string, string, *ce.CustomError) {
 		}
 	}
 
-	// Single shared client; Timeout=0 to avoid killing long streams mid-transfer.
+	// Single shared client; SessionTimeout=0 to avoid killing long streams mid-transfer.
 	client := &http.Client{
 		Transport: transport,
 		Timeout:   0,
@@ -96,7 +96,7 @@ func negotiateAPIVersion(client *http.Client, base string) (string, *ce.CustomEr
 	if err != nil {
 		return "", &ce.CustomError{Title: "Failed to build /version request", Message: err.Error(), Code: 100}
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.FastfailTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.HandshakeTimeout)*time.Second)
 	defer cancel()
 	req = req.WithContext(ctx)
 
