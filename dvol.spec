@@ -61,6 +61,12 @@ install -Dpm 0755 %{_sourcedir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryn
 
 
 %changelog
+* Thu Oct 23 2025 Binary package builder <builder@famillegratton.net> 2.10.10-0
+- Updated GO, completed verbosity (jean-francois@famillegratton.net)
+- Completed verbosity enhancements in backup subcommand (jean-
+  francois@famillegratton.net)
+- Completed verbosity on the backup command (jean-francois@famillegratton.net)
+
 * Wed Oct 08 2025 Binary package builder <builder@famillegratton.net> 2.10.00-0
 - package version bump (jean-francois@famillegratton.net)
 - Interim attempt at building a valid package (jean-
