@@ -1,7 +1,7 @@
 # Maintainer: J.F.Gratton <jean-francois@famillegratton.net>
 # Packager: Package builder <builder@famillegratton.net>
 pkgname=dvol
-pkgver=2.10.01
+pkgver=2.10.10
 pkgrel=0
 pkgdir=/data/packages
 builddir="$startdir/src/BUILD"

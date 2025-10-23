@@ -108,7 +108,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 	defer cancel()
 
 	if !types.Quiet {
-		fmt.Printf("Deleting and recreating volume %s\n", hftx.Green(volume))
+		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Deleting and recreating volume %s", hftx.Green(volume))))
 	}
 	hfl.Infof("Deleting volume %s\n", volume)
 	// DELETE /volumes/{name}
@@ -119,13 +119,21 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 		message := err.Error()
 		rerr := ce.CustomError{Title: title, Message: message, Code: 601}
 		hfl.Errorf(rerr.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+		}
 		return &rerr
 	}
 	req = req.WithContext(ctx)
 	resp, err := client.Do(req)
 	if err != nil {
-		derr := ce.CustomError{Title: "Error executing http request", Message: err.Error(), Code: 602}
+		title := "Error executing http request"
+		message := err.Error()
+		derr := ce.CustomError{Title: title, Message: message, Code: 602}
 		hfl.Errorf(derr.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+		}
 		return &derr
 	}
 	io.Copy(io.Discard, resp.Body)
@@ -137,24 +145,38 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 	var buf []byte
 	var jerr error
 	if buf, jerr = json.Marshal(body); jerr != nil {
-		err := ce.CustomError{Title: "Error marshalling json", Message: err.Error(), Code: 103}
+		message := "Error marshalling json"
+		title := jerr.Error()
+		err := ce.CustomError{Title: title, Message: message, Code: 103}
 		hfl.Errorf(err.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+		}
 		return &err
 	}
 
 	resp, err = client.Post(createURL, "application/json", bytes.NewReader(buf))
 	if err != nil {
-		cerr := ce.CustomError{Title: "Error re-creating the volume", Message: err.Error(), Code: 603}
+		message := fmt.Sprintf("Error re-creating the volume %s", volume)
+		title := err.Error()
+		cerr := ce.CustomError{Title: title, Message: message, Code: 603}
 		hfl.Errorf(cerr.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+		}
 		return &cerr
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
 		if rsp, raerr := io.ReadAll(resp.Body); raerr != nil {
-			cerr := ce.CustomError{Title: "Volume creation error",
-				Message: fmt.Sprintf("HTTP error code: %d : %s", resp.StatusCode, rsp), Code: 604}
+			title := "Volume creation error"
+			message := fmt.Sprintf("HTTP error code: %d : %s", resp.StatusCode, rsp)
+			cerr := ce.CustomError{Message: message, Title: title, Code: 604}
 			hfl.Errorf(cerr.ErrorNoColor())
+			if !types.Quiet {
+				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			}
 			return &cerr
 		}
 	}
