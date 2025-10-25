@@ -61,6 +61,10 @@ install -Dpm 0755 %{_sourcedir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryn
 
 
 %changelog
+* Fri Oct 24 2025 Binary package builder <builder@famillegratton.net> 2.10.10-1
+- Release number bump to avoid tito messiness (jean-
+  francois@famillegratton.net)
+
 * Fri Oct 24 2025 Binary package builder <builder@famillegratton.net> 2.10.10-0
 - Completed restore verbosity (jean-francois@famillegratton.net)
 - Automatic commit of package [dvol] release [2.10.10-0].
