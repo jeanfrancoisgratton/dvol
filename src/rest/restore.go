@@ -84,7 +84,12 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 	// Open source archive; if compressed, decompress to expose a raw tar stream to the PUT
 	file, oerr := os.Open(archivePath)
 	if oerr != nil {
-		e := ce.CustomError{Title: "Unable to open archive", Message: oerr.Error(), Code: 701}
+		title := "Unable to open archive"
+		message := oerr.Error()
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+		}
+		e := ce.CustomError{Title: title, Message: message, Code: 701}
 		hfl.Errorf(e.ErrorNoColor())
 		return &e
 	}
@@ -95,8 +100,13 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 	case strings.HasSuffix(archivePath, ".tar.gz") || strings.HasSuffix(archivePath, ".tgz"):
 		gr, gerr := gzip.NewReader(file)
 		if gerr != nil {
-			e := ce.CustomError{Title: "Unable to create gzip reader", Message: gerr.Error(), Code: 702}
+			title := "Unable to create the gzip reader"
+			message := gerr.Error()
+			e := ce.CustomError{Title: title, Message: message, Code: 702}
 			hfl.Errorf(e.ErrorNoColor())
+			if !types.Quiet {
+				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+			}
 			return &e
 		}
 		defer gr.Close()
@@ -105,8 +115,13 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 		// If your project includes .xz support here, wire it exactly as you had:
 		xzr, xerr := xz.NewReader(file)
 		if xerr != nil {
-			e := ce.CustomError{Title: "Unable to create xz reader", Message: xerr.Error(), Code: 703}
+			title := "Unable to create the xz reader"
+			message := xerr.Error()
+			e := ce.CustomError{Title: title, Message: message, Code: 703}
 			hfl.Errorf(e.ErrorNoColor())
+			if !types.Quiet {
+				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+			}
 			return &e
 		}
 		body = xzr
@@ -116,8 +131,13 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 	putURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/data"
 	req, rerr := http.NewRequest(http.MethodPut, putURL, body)
 	if rerr != nil {
-		e := ce.CustomError{Title: "Unable to build restore http request", Message: rerr.Error(), Code: 801}
+		title := "Unable to build the restore http request"
+		message := rerr.Error()
+		e := ce.CustomError{Title: title, Message: message, Code: 801}
 		hfl.Errorf(e.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+		}
 		return &e
 	}
 	req.Header.Set("Content-Type", "application/x-tar")
@@ -128,8 +148,13 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 
 	resp, derr := client.Do(req)
 	if derr != nil {
-		e := ce.CustomError{Title: "Unable to perform restore http request", Message: derr.Error(), Code: 802}
+		title := "Unable to perform the restore http request"
+		message := derr.Error()
+		e := ce.CustomError{Title: title, Message: message, Code: 802}
 		hfl.Errorf(e.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+		}
 		return &e
 	}
 	defer resp.Body.Close()
@@ -137,14 +162,22 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		b, raerr := io.ReadAll(resp.Body)
 		if raerr != nil {
-			err := ce.CustomError{Title: "Unable to read restore http response",
-				Message: fmt.Sprintf("HTTP %d (and read error: %s)", resp.StatusCode, raerr.Error()), Code: 803}
+			title := "Unable to read the restore http response"
+			message := fmt.Sprintf("HTTP %d (and read error: %s)", resp.StatusCode, raerr.Error())
+			err := ce.CustomError{Title: title, Message: message, Code: 803}
 			hfl.Errorf(err.ErrorNoColor())
+			if !types.Quiet {
+				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+			}
 			return &err
 		}
-		err := ce.CustomError{Title: "Restore failed",
-			Message: fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(b)), Code: 803}
+		title := "Restore failed"
+		message := fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(b))
+		err := ce.CustomError{Title: title, Message: message, Code: 803}
 		hfl.Errorf(err.ErrorNoColor())
+		if !types.Quiet {
+			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+		}
 		return &err
 	}
 
