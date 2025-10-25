@@ -2,7 +2,7 @@
 # Packager: Package builder <builder@famillegratton.net>
 pkgname=dvol
 pkgver=2.10.10
-pkgrel=0
+pkgrel=1
 pkgdir=/data/packages
 builddir="$startdir/src/BUILD"
 pkgdesc="Container volume backup and restore"

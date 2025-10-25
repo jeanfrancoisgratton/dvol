@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PKGDIR="dvol-2.10.10-0_amd64"
+PKGDIR="dvol-2.10.10-1_amd64"
 
 mkdir -p ${PKGDIR}/opt/bin ${PKGDIR}/DEBIAN
 mkdir -p ${PKGDIR}/opt/bin ${PKGDIR}/DEBIAN
