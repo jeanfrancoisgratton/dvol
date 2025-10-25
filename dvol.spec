@@ -61,6 +61,27 @@ install -Dpm 0755 %{_sourcedir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryn
 
 
 %changelog
+* Fri Oct 24 2025 Binary package builder <builder@famillegratton.net> 2.10.10-0
+- Completed restore verbosity (jean-francois@famillegratton.net)
+- Automatic commit of package [dvol] release [2.10.10-0].
+  (builder@famillegratton.net)
+- Updated GO, completed verbosity (jean-francois@famillegratton.net)
+- Completed verbosity enhancements in backup subcommand (jean-
+  francois@famillegratton.net)
+- Completed verbosity on the backup command (jean-francois@famillegratton.net)
+
+* Fri Oct 24 2025 Binary package builder <builder@famillegratton.net>
+- Completed restore verbosity (jean-francois@famillegratton.net)
+- Automatic commit of package [dvol] release [2.10.10-0].
+  (builder@famillegratton.net)
+- Updated GO, completed verbosity (jean-francois@famillegratton.net)
+- Completed verbosity enhancements in backup subcommand (jean-
+  francois@famillegratton.net)
+- Completed verbosity on the backup command (jean-francois@famillegratton.net)
+
+* Fri Oct 24 2025 Binary package builder <builder@famillegratton.net>
+- Completed restore verbosity (jean-francois@famillegratton.net)
+
 * Thu Oct 23 2025 Binary package builder <builder@famillegratton.net> 2.10.10-0
 - Updated GO, completed verbosity (jean-francois@famillegratton.net)
 - Completed verbosity enhancements in backup subcommand (jean-
