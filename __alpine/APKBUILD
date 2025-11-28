@@ -9,19 +9,34 @@ pkgdesc="Container volume backup and restore"
 url="https://git.famillegratton.net:3000/devops/dvol.git"
 arch=x86_64
 license=GPL2
+makedepends="go"
+options="!check"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.pre-deinstall $pkgname.post-deinstall"
 binaryname=dvol
 
+prepare() {
+	mkdir -p "$builddir"
+	cp -R "$startdir"/../src/* "$builddir"/
+}
+
 build() {
-	pwd
-	mkdir -p "$builddir" && cd "$builddir"/.. && rm -rf BUILD && cp -R "$startdir"/../src . && mv src BUILD
-    cd "$builddir"
-    make -f "$startdir"/Makefile prepare
-    CGO_ENABLED=0 go build -o "$binaryname".exe .
+	cd "$builddir"
+
+	# Ensure no global PIE flags leak in
+	unset GOFLAGS
+	export GOENV=off
+	export CGO_ENABLED=0
+	export GOOS=linux GOARCH=amd64
+	export GO111MODULE=on
+
+	go env | egrep 'GOFLAGS|CGO_ENABLED|GOOS|GOARCH' || true
+
+	# Static, non-PIE, internal linker
+	go build -trimpath -ldflags="-s -w -buildid= -linkmode=internal" -o "$binaryname" .
 }
 
 package() {
-        make -f "$startdir"/Makefile BUILDDIR="$builddir" PREFIX=/opt PKGNM="$binaryname" DESTDIR="$pkgdir" install
+	install -d "$pkgdir"/opt/bin
+	install "$builddir/$binaryname" "$pkgdir/opt/bin/$binaryname"
 }
-
 

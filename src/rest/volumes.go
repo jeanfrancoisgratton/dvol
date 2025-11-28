@@ -17,8 +17,8 @@ import (
 	"time"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
-	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v4/terminalfx"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -108,7 +108,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 	defer cancel()
 
 	if !types.Quiet {
-		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Deleting and recreating volume %s", hftx.Green(volume))))
+		fmt.Println(hftx.InProgressSign(fmt.Sprintf("Deleting and recreating volume %s", hftx.Green(volume))))
 	}
 	hfl.Infof("Deleting volume %s\n", volume)
 	// DELETE /volumes/{name}
@@ -120,7 +120,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 		rerr := ce.CustomError{Title: title, Message: message, Code: 601}
 		hfl.Errorf(rerr.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.ErrorSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 		return &rerr
 	}
@@ -132,7 +132,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 		derr := ce.CustomError{Title: title, Message: message, Code: 602}
 		hfl.Errorf(derr.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 		return &derr
 	}
@@ -150,7 +150,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 		err := ce.CustomError{Title: title, Message: message, Code: 103}
 		hfl.Errorf(err.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 		return &err
 	}
@@ -162,7 +162,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 		cerr := ce.CustomError{Title: title, Message: message, Code: 603}
 		hfl.Errorf(cerr.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 		return &cerr
 	}
@@ -175,7 +175,7 @@ func deleteAndRecreateVolume(client *http.Client, base, version, volume string) 
 			cerr := ce.CustomError{Message: message, Title: title, Code: 604}
 			hfl.Errorf(cerr.ErrorNoColor())
 			if !types.Quiet {
-				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+				fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 			}
 			return &cerr
 		}

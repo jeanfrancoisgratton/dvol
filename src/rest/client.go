@@ -14,7 +14,7 @@ import (
 	"time"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
 
 	"dvol/types"
 )

@@ -16,8 +16,8 @@ import (
 
 	"github.com/docker/docker/pkg/jsonmessage"
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
-	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v4/terminalfx"
 
 	"dvol/types"
 )
@@ -46,7 +46,7 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 					for _, t := range im.RepoTags {
 						if t == image {
 							if !types.Quiet {
-								fmt.Println(hftx.InfoGlyph(fmt.Sprintf("Image %s is already present, no need to pull it", image)))
+								fmt.Println(hftx.InfoSign(fmt.Sprintf("Image %s is already present, no need to pull it", image)))
 							}
 							return nil
 						}
@@ -68,7 +68,7 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 		title := "Error building the image pull request"
 		message := err.Error()
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 		perr := ce.CustomError{Title: title, Message: message, Code: 200}
 		hfl.Errorf(perr.ErrorNoColor())
@@ -81,7 +81,7 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 		title := "Error when pulling the image"
 		message := err.Error()
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 		perr := ce.CustomError{Title: title, Message: message, Code: 201}
 		hfl.Errorf(perr.ErrorNoColor())
@@ -96,7 +96,7 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 		perr := ce.CustomError{Title: title, Message: message, Code: 201}
 		hfl.Errorf(perr.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 
 		return &perr
@@ -117,7 +117,7 @@ func ensureImageExists(client *http.Client, base, version, image string) *ce.Cus
 			perr := ce.CustomError{Title: title, Message: message, Code: 202}
 			hfl.Errorf(perr.ErrorNoColor())
 			if !types.Quiet {
-				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+				fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 			}
 			return &perr
 		}

@@ -16,8 +16,8 @@ import (
 	"time"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hflog "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
-	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
+	hflog "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v4/terminalfx"
 
 	"dvol/types"
 )
@@ -33,7 +33,7 @@ func getContainersUsingVolume(client *http.Client, base, version, volumeName str
 	resp, err := client.Do(req)
 	if err != nil {
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("Error listing the containers using the volume %s: %s", volumeName, err.Error())))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("Error listing the containers using the volume %s: %s", volumeName, err.Error())))
 		}
 		gerr := ce.CustomError{Title: "Error listing the containers using the volume", Message: err.Error(), Code: 301}
 		hflog.Errorf(gerr.ErrorNoColor())
@@ -52,7 +52,7 @@ func getContainersUsingVolume(client *http.Client, base, version, volumeName str
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&containers); err != nil {
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("Error listing the containers using the volume %s: %s", volumeName, err.Error())))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("Error listing the containers using the volume %s: %s", volumeName, err.Error())))
 		}
 		perr := ce.CustomError{Title: "Error decoding containers list", Message: err.Error(), Code: 302}
 		hflog.Errorf(perr.ErrorNoColor())
@@ -85,7 +85,7 @@ func stopContainers(client *http.Client, base, version string, ids []string) *ce
 		resp, err := client.Do(req)
 		if err != nil {
 			if !types.Quiet {
-				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("Error stopping container %s: %s", id, err.Error())))
+				fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("Error stopping container %s: %s", id, err.Error())))
 			}
 			gerr := ce.CustomError{Title: fmt.Sprintf("Error stopping container %s", id), Message: err.Error(), Code: 303}
 			hflog.Errorf(gerr.ErrorNoColor())
@@ -107,7 +107,7 @@ func startContainers(client *http.Client, base, version string, ids []string) *c
 		resp, err := client.Do(req)
 		if err != nil {
 			if !types.Quiet {
-				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("Error starting container %s: %s", id, err.Error())))
+				fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("Error starting container %s: %s", id, err.Error())))
 			}
 			gerr := ce.CustomError{Title: "Error starting container", Message: err.Error(), Code: 304}
 			hflog.Errorf(gerr.ErrorNoColor())
@@ -136,7 +136,7 @@ func createTempContainer(client *http.Client, base, version, image, volumeName s
 	if merr != nil {
 		title := "Error building container create payload"
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, merr.Error())))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, merr.Error())))
 		}
 		return "", &ce.CustomError{Title: title, Message: merr.Error(), Code: 351}
 	}
@@ -152,7 +152,7 @@ func createTempContainer(client *http.Client, base, version, image, volumeName s
 	if err != nil {
 		title := "Error creating temp container"
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, err.Error())))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, err.Error())))
 		}
 		return "", &ce.CustomError{Title: title, Message: err.Error(), Code: 353}
 	}
@@ -165,7 +165,7 @@ func createTempContainer(client *http.Client, base, version, image, volumeName s
 		title := "Error reading container create reply"
 		message := "empty ID or decode failure"
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, message)))
 		}
 		return "", &ce.CustomError{Title: title, Message: message, Code: 354}
 	}
@@ -185,7 +185,7 @@ func startContainer(client *http.Client, base, version, id string) *ce.CustomErr
 	if err != nil {
 		title := "Error starting the temp container"
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s: %s", title, err.Error())))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s: %s", title, err.Error())))
 		}
 		return &ce.CustomError{Title: title, Message: err.Error(), Code: 355}
 	}
@@ -198,7 +198,7 @@ func stopAndRemoveContainer(client *http.Client, base, version, id string) *ce.C
 	stop := APIPath(base, version, "containers", id, "stop")
 	_, err := client.Post(stop, "", nil)
 	if err != nil {
-		fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("Container %s could not be stopped: %s", hftx.Blue(id), err.Error())))
+		fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("Container %s could not be stopped: %s", hftx.Blue(id), err.Error())))
 		perr := ce.CustomError{Title: fmt.Sprintf("Error stopping %s", id), Message: err.Error(), Code: 303}
 		hflog.Errorf(perr.ErrorNoColor())
 		return &perr
