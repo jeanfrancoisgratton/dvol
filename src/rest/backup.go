@@ -18,8 +18,8 @@ import (
 	"dvol/types"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hflog "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
-	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
+	hflog "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v4/terminalfx"
 )
 
 // BackupVolume streams /containers/{id}/archive (download) to a local file (optionally gzipped).
@@ -27,21 +27,21 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	image := types.Image
 
 	if !types.Quiet {
-		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Backing up %s to %s", volumeName, archivePath)))
+		fmt.Println(hftx.InProgressSign(fmt.Sprintf("Backing up %s to %s", volumeName, archivePath)))
 		if types.HandshakeTimeout != 60 {
-			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP handshake (fast-fail) timeout set to %d seconds", types.HandshakeTimeout)))
+			fmt.Println(hftx.NoteSign(fmt.Sprintf("HTTP handshake (fast-fail) timeout set to %d seconds", types.HandshakeTimeout)))
 		}
 		if types.SessionTimeout != 60 {
-			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP session timeout set to %d minutes", types.SessionTimeout)))
+			fmt.Println(hftx.NoteSign(fmt.Sprintf("HTTP session timeout set to %d minutes", types.SessionTimeout)))
 		}
 	}
 	attachedContainers, err := getContainersUsingVolume(client, base, version, volumeName)
 	if !types.Quiet {
 		attachedResult := ""
 		if len(attachedContainers) == 0 {
-			attachedResult = hftx.InfoGlyph("No running containers were attached to the volume to be backed up")
+			attachedResult = hftx.InfoSign("No running containers were attached to the volume to be backed up")
 		} else {
-			attachedResult = hftx.InfoGlyph(fmt.Sprintf("%d running containers are attached to the volume. They will be restarted after the backup",
+			attachedResult = hftx.InfoSign(fmt.Sprintf("%d running containers are attached to the volume. They will be restarted after the backup",
 				len(attachedContainers)))
 		}
 		fmt.Println(attachedResult)
@@ -51,7 +51,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 	}
 	if len(attachedContainers) > 0 {
 		if !types.Quiet {
-			fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Temporarily stopping the running container(s) using %s", volumeName)))
+			fmt.Println(hftx.InProgressSign(fmt.Sprintf("Temporarily stopping the running container(s) using %s", volumeName)))
 		}
 		if e := stopContainers(client, base, version, attachedContainers); e != nil {
 			return e
@@ -60,7 +60,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 
 	// Create a temp container bound to the volume and start it
 	if !types.Quiet {
-		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Creating and starting a temp Alpine container to temporarily attach the volume %s", volumeName)))
+		fmt.Println(hftx.InProgressSign(fmt.Sprintf("Creating and starting a temp Alpine container to temporarily attach the volume %s", volumeName)))
 	}
 	containerID, cerr := createTempContainer(client, base, version, image, volumeName)
 	if cerr != nil {
@@ -126,7 +126,7 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 
 	if !types.NoCleanup {
 		if !types.Quiet {
-			fmt.Println(hftx.InProgressGlyph("Cleanup: stoping and removing the temp Alpine container"))
+			fmt.Println(hftx.InProgressSign("Cleanup: stoping and removing the temp Alpine container"))
 		}
 		if e := stopAndRemoveContainer(client, base, version, containerID); e != nil {
 			return e
@@ -135,13 +135,13 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 
 	// restart the containers that were stopped before the backup
 	if !types.Quiet {
-		fmt.Println(hftx.InProgressGlyph("Restarting the containers that were stopped before the backup"))
+		fmt.Println(hftx.InProgressSign("Restarting the containers that were stopped before the backup"))
 	}
 	if scerr := startContainers(client, base, version, attachedContainers); scerr != nil {
 		return scerr
 	}
 	if !types.Quiet {
-		fmt.Printf("%s volume %s backed up as %s\n", hftx.EnabledGlyph(""), hftx.Blue(volumeName), hftx.Blue(archivePath))
+		fmt.Printf("%s volume %s backed up as %s\n", hftx.EnabledSign(""), hftx.Blue(volumeName), hftx.Blue(archivePath))
 	}
 	return nil
 }

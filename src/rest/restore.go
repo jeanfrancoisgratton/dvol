@@ -16,8 +16,8 @@ import (
 	"time"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
-	hftx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v4/terminalfx"
 	"github.com/ulikunitz/xz"
 
 	"dvol/types"
@@ -28,12 +28,12 @@ import (
 func RestoreVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {
 	image := types.Image
 	if !types.Quiet {
-		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Restoring %s from %s", hftx.Blue(volumeName), hftx.Blue(archivePath))))
+		fmt.Println(hftx.InProgressSign(fmt.Sprintf("Restoring %s from %s", hftx.Blue(volumeName), hftx.Blue(archivePath))))
 		if types.HandshakeTimeout != 60 {
-			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP handshake (fast-fail) timeout set to %d seconds", types.HandshakeTimeout)))
+			fmt.Println(hftx.NoteSign(fmt.Sprintf("HTTP handshake (fast-fail) timeout set to %d seconds", types.HandshakeTimeout)))
 		}
 		if types.SessionTimeout != 60 {
-			fmt.Println(hftx.NoteGlyph(fmt.Sprintf("HTTP session timeout set to %d minutes", types.SessionTimeout)))
+			fmt.Println(hftx.NoteSign(fmt.Sprintf("HTTP session timeout set to %d minutes", types.SessionTimeout)))
 		}
 	}
 	if err := ensureImageExists(client, base, version, image); err != nil {
@@ -45,9 +45,9 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 	if !types.Quiet {
 		attachedResult := ""
 		if len(attachedContainers) == 0 {
-			attachedResult = hftx.InfoGlyph("No running containers were attached to the volume to be backed up")
+			attachedResult = hftx.InfoSign("No running containers were attached to the volume to be backed up")
 		} else {
-			attachedResult = hftx.InfoGlyph(fmt.Sprintf("%d running containers are attached to the volume. They will be restarted after the backup",
+			attachedResult = hftx.InfoSign(fmt.Sprintf("%d running containers are attached to the volume. They will be restarted after the backup",
 				len(attachedContainers)))
 		}
 		fmt.Println(attachedResult)
@@ -57,7 +57,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 	}
 	if len(attachedContainers) > 0 {
 		if !types.Quiet {
-			fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Stopping the %d container(s) attached to %s", len(attachedContainers), volumeName)))
+			fmt.Println(hftx.InProgressSign(fmt.Sprintf("Stopping the %d container(s) attached to %s", len(attachedContainers), volumeName)))
 		}
 		if e := stopContainers(client, base, version, attachedContainers); e != nil {
 			return e
@@ -66,7 +66,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 
 	// Destroy & recreate the volume before restore
 	if !types.Quiet {
-		fmt.Println(hftx.InProgressGlyph(fmt.Sprintf("Deleting the volume %s before creating a brand-new restored volume", volumeName)))
+		fmt.Println(hftx.InProgressSign(fmt.Sprintf("Deleting the volume %s before creating a brand-new restored volume", volumeName)))
 	}
 	if e := deleteAndRecreateVolume(client, base, version, volumeName); e != nil {
 		return e
@@ -87,7 +87,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 		title := "Unable to open archive"
 		message := oerr.Error()
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s %s", title, message)))
 		}
 		e := ce.CustomError{Title: title, Message: message, Code: 701}
 		hfl.Errorf(e.ErrorNoColor())
@@ -105,7 +105,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 			e := ce.CustomError{Title: title, Message: message, Code: 702}
 			hfl.Errorf(e.ErrorNoColor())
 			if !types.Quiet {
-				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+				fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s %s", title, message)))
 			}
 			return &e
 		}
@@ -120,7 +120,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 			e := ce.CustomError{Title: title, Message: message, Code: 703}
 			hfl.Errorf(e.ErrorNoColor())
 			if !types.Quiet {
-				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+				fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s %s", title, message)))
 			}
 			return &e
 		}
@@ -136,7 +136,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 		e := ce.CustomError{Title: title, Message: message, Code: 801}
 		hfl.Errorf(e.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s %s", title, message)))
 		}
 		return &e
 	}
@@ -153,7 +153,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 		e := ce.CustomError{Title: title, Message: message, Code: 802}
 		hfl.Errorf(e.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s %s", title, message)))
 		}
 		return &e
 	}
@@ -167,7 +167,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 			err := ce.CustomError{Title: title, Message: message, Code: 803}
 			hfl.Errorf(err.ErrorNoColor())
 			if !types.Quiet {
-				fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+				fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s %s", title, message)))
 			}
 			return &err
 		}
@@ -176,7 +176,7 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 		err := ce.CustomError{Title: title, Message: message, Code: 803}
 		hfl.Errorf(err.ErrorNoColor())
 		if !types.Quiet {
-			fmt.Println(hftx.FatalSkullBonesGlyph(fmt.Sprintf("%s %s", title, message)))
+			fmt.Println(hftx.SkullBonesSign(fmt.Sprintf("%s %s", title, message)))
 		}
 		return &err
 	}
