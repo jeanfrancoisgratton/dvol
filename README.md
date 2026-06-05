@@ -52,7 +52,7 @@ and tears the container back down — no Docker CLI required, no shell scripts.
 
 ```sh
 git clone https://github.com/jeanfrancoisgratton/dvol.git
-cd dvol
+cd dvol/src/
 ./build.sh
 ```
 
