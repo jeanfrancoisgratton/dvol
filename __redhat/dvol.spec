@@ -1,62 +1,68 @@
-%ifarch aarch64
-%global _arch aarch64
-%global BuildArchitectures aarch64
-%endif
-
-%ifarch x86_64
-%global _arch x86_64
-%global BuildArchitectures x86_64
-%endif
-
 %define debug_package   %{nil}
 %define _build_id_links none
 %define _name dvol
 %define _prefix /opt
-%define _version 2.10.10
-%define _rel 1
-#%define _arch x86_64
+%define _bash_completionsdir /usr/share/bash-completion/completions
+%define _zsh_completionsdir  /usr/share/zsh/site-functions
+%define _version 2.25.00
+%define _rel 0
 %define _binaryname dvol
 
 Name:       dvol
 Version:    %{_version}
 Release:    %{_rel}
-Summary:    Container volume backup and restore
+Summary:    Docker/Podman volume backup & restore tool
 
-Group:      Container utilities
+Group:      CI/CD
 License:    GPL2.0
 URL:        https://git.famillegratton.net:3000/devops/dvol.git
 
 Source0:    %{name}-%{_version}.tar.gz
+#BuildArchitectures: x86_64
 BuildRequires: gcc
+Recommends: zsh
+Requires: bash-completion
 
 %description
-Container volume backup and restore
+Nexus Repository Manager tools
 
 %prep
 %autosetup
 
 %build
-cd %{_sourcedir}/%{_name}-%{_version}/src
-PATH=$PATH:/opt/go/bin go build -o %{_sourcedir}/%{_binaryname} .
-strip %{_sourcedir}/%{_binaryname}
+cd src
+go mod download
+PATH=$PATH:/opt/go/bin CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -buildid=" -o %{_builddir}/%{_binaryname} .
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %pre
-exit 0
-
 %install
-install -Dpm 0755 %{_sourcedir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryname}
+install -Dpm 0755 %{_builddir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryname}
 
 %post
+# Bash completion — always install
+/opt/bin/dvol completion bash > %{_bash_completionsdir}/dvol
+
+# Zsh completion — only if zsh is present
+if command -v zsh > /dev/null 2>&1; then
+    mkdir -p /usr/share/zsh/site-functions
+    /opt/bin/dvol completion zsh > /usr/share/zsh/site-functions/_dvol
+    zsh -c 'autoload -Uz compinit && compinit' 2>/dev/null || true
+fi
 
 %preun
 
 %postun
+if [ $1 -eq 0 ]; then
+    # $1 == 0 means this is a full uninstall, not an upgrade
+    rm -f %{_bash_completionsdir}/dvol
+    rm -f %{_zsh_completionsdir}/_dvol
+fi
 
 %files
-%defattr(-,root,root,-)
+%defattr(0755,root,root,-)
 %{_bindir}/%{_binaryname}
 
 
@@ -120,4 +126,3 @@ install -Dpm 0755 %{_sourcedir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryn
 
 * Mon Jun 09 2025 APK Builder <builder@famillegratton.net> 1.01.00-1
 - new package built with tito
-

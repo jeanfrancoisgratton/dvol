@@ -23,6 +23,8 @@ import (
 )
 
 // BackupVolume streams /containers/{id}/archive (download) to a local file (optionally gzipped).
+// We request ?path=/ so the tar stream contains entries rooted at "/" (e.g. "data/pg_data/...").
+// This matches the restore side which also PUTs to ?path=/, causing "data/" to land at /data/.
 func BackupVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {
 	image := types.Image
 
@@ -70,8 +72,9 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 		return e
 	}
 
-	// Build streaming GET request to fetch /data from the temp container
-	copyURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/data"
+	// Request path=/ so entries in the tar stream are rooted at "/" (i.e. "data/...").
+	// On restore we also PUT to path=/ so "data/" extracts cleanly to /data/ inside the volume.
+	copyURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/"
 	req, rerr := http.NewRequest(http.MethodGet, copyURL, nil)
 	if rerr != nil {
 		e := ce.CustomError{Title: "Failed to build archive request", Message: rerr.Error(), Code: 401}

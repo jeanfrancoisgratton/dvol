@@ -23,8 +23,10 @@ import (
 	"dvol/types"
 )
 
-// RestoreVolume uploads a tar(.gz|.xz|.txz) archive to /containers/{id}/archive (upload)
-// NOTE: requires: import "context" and "time"
+// RestoreVolume uploads a tar(.gz|.xz|.txz) archive to /containers/{id}/archive (upload).
+// The archive was created by BackupVolume with ?path=/, so entries are rooted at "/"
+// (e.g. "data/pg_data/..."). We PUT to ?path=/ so "data/" extracts to /data/ inside the volume,
+// matching the original mount point exactly.
 func RestoreVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {
 	image := types.Image
 	if !types.Quiet {
@@ -112,7 +114,6 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 		defer gr.Close()
 		body = gr
 	case strings.HasSuffix(archivePath, ".xz") || strings.HasSuffix(archivePath, ".txz"):
-		// If your project includes .xz support here, wire it exactly as you had:
 		xzr, xerr := xz.NewReader(file)
 		if xerr != nil {
 			title := "Unable to create the xz reader"
@@ -127,8 +128,9 @@ func RestoreVolume(client *http.Client, base, version, volumeName, archivePath s
 		body = xzr
 	}
 
-	// Build streaming PUT request — Content-Type must be tar; apply overall stream timeout
-	putURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/data"
+	// PUT to path=/ so "data/" entries from the archive land at /data/ inside the volume.
+	// The archive was created with path=/ (entries rooted at "/"), so this is a symmetric operation.
+	putURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/"
 	req, rerr := http.NewRequest(http.MethodPut, putURL, body)
 	if rerr != nil {
 		title := "Unable to build the restore http request"

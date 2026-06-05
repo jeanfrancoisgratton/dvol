@@ -62,11 +62,16 @@ func NewClient() (*http.Client, string, string, *ce.CustomError) {
 			base = "http://" + host
 		}
 	} else {
-		return nil, "", "", &ce.CustomError{
-			Title:   "Invalid Docker host",
-			Message: fmt.Sprintf("Unsupported host format: %s", types.DockerHost),
-			Code:    101,
+		// Bare host:port (no scheme) — treat as plain HTTP TCP, same as tcp://
+		transport = &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout: fast,
+			}).DialContext,
+			ResponseHeaderTimeout: fast,
+			TLSHandshakeTimeout:   fast,
+			DisableCompression:    false,
 		}
+		base = "http://" + types.DockerHost
 	}
 
 	// Single shared client; SessionTimeout=0 to avoid killing long streams mid-transfer.

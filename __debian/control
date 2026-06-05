@@ -1,8 +1,8 @@
 Package: dvol
-Version: 2.10.10-1
+Version: 2.25.00-0
 Architecture: amd64
 Maintainer: J.F.Gratton <jean-francois@famillegratton.net>
-Description: Container volume backup and restore
-Section: Container utilities
+Description: Docker volume backup & restore tool
+Section: Docker/Podman management
 Depends: 
-
+Suggests: zsh

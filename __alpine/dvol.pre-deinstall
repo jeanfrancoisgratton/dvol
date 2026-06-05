@@ -1,3 +1,4 @@
 #!/usr/bin/env ash
 
-exit 0
+rm -f /etc/bash_completion.d/dvol
+rm -f /usr/share/zsh/site-functions/_dvol

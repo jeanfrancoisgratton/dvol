@@ -4,13 +4,14 @@
 package cmd
 
 import (
-	"dvol/rest"
-	"dvol/types"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"dvol/rest"
+	"dvol/types"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
 	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
@@ -22,7 +23,7 @@ var rootCmd = &cobra.Command{
 	Use:     "dvol",
 	Short:   "Volume backup/restore utility for Docker/Podman",
 	Long:    "Backup and restore Docker/Podman volumes using the REST API, with optional gzip compression.",
-	Version: hftfx.White(fmt.Sprintf("2.10.10-%s (2025.10.23)", runtime.GOARCH)),
+	Version: hftfx.White(fmt.Sprintf("2.25.00-%s (2026.06.04), GO version = v%s", runtime.GOARCH, strings.TrimPrefix(runtime.Version(), "go"))),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if types.LogLevel != "none" {
 			if err := hfl.Init(filepath.Join(os.Getenv("HOME"), ".local", "state", "dvol.log"),
@@ -88,11 +89,15 @@ var lsVolCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Short:   "List all Docker volumes",
 	Run: func(cmd *cobra.Command, args []string) {
-		client, base, negotiatedAPI, err := rest.NewClient()
-		vols, err := rest.ListVolumes(client, base, negotiatedAPI)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(err.Code)
+		client, base, negotiatedAPI, cerr := rest.NewClient()
+		if cerr != nil {
+			fmt.Println(cerr.Error())
+			os.Exit(cerr.Code)
+		}
+		vols, verr := rest.ListVolumes(client, base, negotiatedAPI)
+		if verr != nil {
+			fmt.Println(verr.Error())
+			os.Exit(verr.Code)
 		}
 		rest.ShowVols(vols)
 	},
