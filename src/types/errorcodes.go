@@ -8,16 +8,17 @@ package types
 // shellExitCode maps your internal error code space (100s, 200s, …) to small, shell-friendly exits.
 // Rationale:
 //
-//	100–199  JSON-related              -> 10
-//	200–299  ImagePull                 -> 20
-//	300–399  Container start/stop/etc. -> 30
-//	400–499  Container archive         -> 40
-//	500–599  API version               -> 50
-//	600–699  Volume ops                -> 60
-//	700–799  Tarball read/decompress   -> 70
-//	800–899  Restore request handling  -> 80
-//	<100     keep as-is (your early small codes, e.g., 10–12 in main.go)
-//	other    fallback to 1
+
+// 100–199  JSON-related              -> 10
+// 200–299  ImagePull                 -> 20
+// 300–399  Container start/stop/etc. -> 30
+// 400–499  Container archive         -> 40
+// 500–599  API version               -> 50
+// 600–699  Volume ops                -> 60
+// 700–799  Tarball read/decompress   -> 70
+// 800–899  Restore request handling  -> 80
+// <100     keep as-is (your early small codes, e.g., 10–12 in main.go)
+// other    fallback to 1
 func ShellExitCode(internal int) int {
 	switch {
 	case internal < 0:

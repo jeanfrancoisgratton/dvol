@@ -16,8 +16,8 @@ import (
 
 	"github.com/docker/docker/pkg/jsonmessage"
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
-	hftx "github.com/jeanfrancoisgratton/helperFunctions/v4/terminalfx"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v5/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v5/terminalfx"
 
 	"dvol/types"
 )

@@ -16,8 +16,8 @@ import (
 	"time"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hflog "github.com/jeanfrancoisgratton/helperFunctions/v4/logging"
-	hftx "github.com/jeanfrancoisgratton/helperFunctions/v4/terminalfx"
+	hflog "github.com/jeanfrancoisgratton/helperFunctions/v5/logging"
+	hftx "github.com/jeanfrancoisgratton/helperFunctions/v5/terminalfx"
 
 	"dvol/types"
 )

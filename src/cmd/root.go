@@ -14,8 +14,8 @@ import (
 	"dvol/types"
 
 	ce "github.com/jeanfrancoisgratton/customError/v3"
-	hfl "github.com/jeanfrancoisgratton/helperFunctions/v3/logging"
-	hftfx "github.com/jeanfrancoisgratton/helperFunctions/v3/terminalfx"
+	hfl "github.com/jeanfrancoisgratton/helperFunctions/v5/logging"
+	hftfx "github.com/jeanfrancoisgratton/helperFunctions/v5/terminalfx"
 	"github.com/spf13/cobra"
 )
 
@@ -26,8 +26,8 @@ var rootCmd = &cobra.Command{
 	Version: hftfx.White(fmt.Sprintf("2.25.00-%s (2026.06.04), GO version = v%s", runtime.GOARCH, strings.TrimPrefix(runtime.Version(), "go"))),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if types.LogLevel != "none" {
-			if err := hfl.Init(filepath.Join(os.Getenv("HOME"), ".local", "state", "dvol.log"),
-				hfl.ParseLevel(types.LogLevel), "USER", false, true); err != nil {
+			//if err := hfl.Init(filepath.Join(os.Getenv("HOME"), ".local", "state", "dvol.log"), hfl.ParseLevel(types.LogLevel), "USER", false, true); err != nil {
+			if err := hfl.Init(filepath.Join(os.Getenv("HOME"), ".local", "state", "dvol.log"), hfl.ParseLevel(types.LogLevel), hfl.LogInitOptions{}); err != nil {
 				cerr := ce.CustomError{Title: "Failed to init logging", Message: err.Error(), Code: 1}
 				fmt.Println(cerr.Error())
 				os.Exit(1)
