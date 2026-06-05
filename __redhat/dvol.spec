@@ -67,6 +67,16 @@ fi
 
 
 %changelog
+* Thu Jun 04 2026 Binary package builder <builder@famillegratton.net> 2.25.00-0
+- fixed mistyped filename
+- Removed missing install scripts
+- Upgraded the helperFunctions package from v3 to v5
+- fixed rootdir volume issue when restoring; added archlinux packaging support, refactored redhat packaging support
+- Merge pull request 'Merge pull request 'develop' (#1) from develop into main' (#2) from main into develop
+- Merge pull request 'develop' (#1) from develop into main
+- fixed alpine build scripts
+- Interim commit while we uniformize all log groups
+
 * Fri Oct 24 2025 Binary package builder <builder@famillegratton.net> 2.10.10-1
 - Release number bump to avoid tito messiness (jean-
   francois@famillegratton.net)
