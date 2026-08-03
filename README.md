@@ -23,7 +23,6 @@ and tears the container back down — no Docker CLI required, no shell scripts.
 - [Archive Formats](#archive-formats)
 - [How It Works](#how-it-works)
 - [Timeouts](#timeouts)
-- [Changelog](#changelog)
 
 ---
 
@@ -211,19 +210,3 @@ performance profiles:
   For large volumes over a slow socket this may need to be raised. Default: 60 min.
 
 ---
-
-## Changelog
-
-| Version | Date       | Notes                                                                                                                                              |
-|---------|------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| 2.25.00 | 2026.06.04 | GO 1.26.4<br> fixed restore "double-path" issue<br> added archlinux packaging support<br> fixed nil pointer dereference with NewClient() and `-H`  |
-| 2.10.10 | 2025.10.23 | GO 1.25.3, completed restore verbosity                                                                                                             |
-| 2.10.01 | 2025.10.10 | Completed verbosity                                                                                                                                |
-| 2.10.00 | 2025.10.08 | Go version update, builddeps update, verbose output, added bash/zsh completion                                                                     |
-| 2.00.00 | 2025.08.24 | Full rewrite                                                                                                                                       |
-| 1.11.00 | 2025.06.19 | Fixed unix:// usage, added the `-q` flag                                                                                                           |
-| 1.10.00 | 2025.06.17 | Fixed backup; volumes are now destroyed before restore                                                                                             |
-| 1.05.00 | 2025.06.11 | Code is now API version-agnostic                                                                                                                   |
-| 1.02.00 | 2025.06.10 | Added volume listing function                                                                                                                      |
-| 1.01.00 | 2025.06.09 | Added cleanup routines, packaging scripts cleanup                                                                                                  |
-| 1.00.00 | 2025.06.06 | Initial release                                                                                                                                    |

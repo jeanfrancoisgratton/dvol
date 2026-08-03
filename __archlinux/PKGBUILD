@@ -2,8 +2,8 @@
 # Packager: Package builder <builder@famillegratton.net>
 
 pkgname=dvol
-pkgver=2.25.00
-pkgrel=0
+pkgver=2.3.0
+pkgrel=1
 pkgdesc="Docker volume backup & restore tool"
 arch=('x86_64')
 url="https://git.famillegratton.net:3000/devops/dvol.git"
@@ -12,7 +12,7 @@ license=('GPL-2.0-only')
 makedepends=('go')
 depends=()
 
-optdepends=('zsh: zsh completion support')
+#optdepends=('zsh: zsh completion support')
 
 options=('!debug')
 
