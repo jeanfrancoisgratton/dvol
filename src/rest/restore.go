@@ -24,7 +24,7 @@ import (
 )
 
 // RestoreVolume uploads a tar(.gz|.xz|.txz) archive to /containers/{id}/archive (upload).
-// The archive was created by BackupVolume with ?path=/, so entries are rooted at "/"
+// The archive was created by BackupVolume with ?path=/data, so entries are rooted at "data/..."
 // (e.g. "data/pg_data/..."). We PUT to ?path=/ so "data/" extracts to /data/ inside the volume,
 // matching the original mount point exactly.
 func RestoreVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {

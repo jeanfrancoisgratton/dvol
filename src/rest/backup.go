@@ -23,8 +23,10 @@ import (
 )
 
 // BackupVolume streams /containers/{id}/archive (download) to a local file (optionally gzipped).
-// We request ?path=/ so the tar stream contains entries rooted at "/" (e.g. "data/pg_data/...").
-// This matches the restore side which also PUTs to ?path=/, causing "data/" to land at /data/.
+// We request ?path=/data (the volume's bind mount point) so the tar stream only contains the
+// volume's own content, rooted at "data/..." (e.g. "data/pg_data/..."), not the rest of the temp
+// container's filesystem. This matches the restore side which PUTs to ?path=/, causing "data/" to
+// land at /data/.
 func BackupVolume(client *http.Client, base, version, volumeName, archivePath string) *ce.CustomError {
 	image := types.Image
 
@@ -72,9 +74,12 @@ func BackupVolume(client *http.Client, base, version, volumeName, archivePath st
 		return e
 	}
 
-	// Request path=/ so entries in the tar stream are rooted at "/" (i.e. "data/...").
-	// On restore we also PUT to path=/ so "data/" extracts cleanly to /data/ inside the volume.
-	copyURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/"
+	// Request path=/data (the volume's bind mount point, see createTempContainer) so the tar
+	// stream only contains the volume's own content, rooted as "data/..." — not the rest of the
+	// temp container's filesystem (which would include /etc, /bin, etc. and break restore, since
+	// those are Docker-managed bind mounts that can't be overwritten/removed on extraction).
+	// On restore we PUT to path=/ so "data/" extracts cleanly to /data/ inside the volume.
+	copyURL := APIPath(base, version, "containers", containerID, "archive") + "?path=/data"
 	req, rerr := http.NewRequest(http.MethodGet, copyURL, nil)
 	if rerr != nil {
 		e := ce.CustomError{Title: "Failed to build archive request", Message: rerr.Error(), Code: 401}
