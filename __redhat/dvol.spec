@@ -2,9 +2,7 @@
 %define _build_id_links none
 %define _name dvol
 %define _prefix /opt
-%define _bash_completionsdir /usr/share/bash-completion/completions
-%define _zsh_completionsdir  /usr/share/zsh/site-functions
-%define _version 2.3.0
+%define _version 2.3.1
 %define _rel 1
 %define _binaryname dvol
 
@@ -53,22 +51,6 @@ install -Dpm 0755 %{_builddir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryna
 
 
 %changelog
-* Mon Aug 03 2026 Binary package builder <builder@famillegratton.net> 2.3.0-1
-- Fixed typo in specfile
-- deps update, GO update, tool vernum aligned to SemVer
-- removed builddeps script
-- moved Changelog into README
-- corrected path in documentation
-- Fixed specfile name
-- fixed mistyped filename
-- Removed missing install scripts
-- Upgraded the helperFunctions package from v3 to v5
-- fixed rootdir volume issue when restoring; added archlinux packaging support, refactored redhat packaging support
-- Merge pull request 'Merge pull request 'develop' (#1) from develop into main' (#2) from main into develop
-- Merge pull request 'develop' (#1) from develop into main
-- fixed alpine build scripts
-- Interim commit while we uniformize all log groups
-
 * Thu Jun 04 2026 Binary package builder <builder@famillegratton.net> 2.25.00-0
 - fixed mistyped filename
 - Removed missing install scripts

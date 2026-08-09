@@ -2,7 +2,7 @@
 # Packager: Package builder <builder@famillegratton.net>
 
 pkgname=dvol
-pkgver=2.3.0
+pkgver=2.3.1
 pkgrel=1
 pkgdesc="Docker volume backup & restore tool"
 arch=('x86_64')

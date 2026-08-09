@@ -23,7 +23,7 @@ var rootCmd = &cobra.Command{
 	Use:     "dvol",
 	Short:   "Volume backup/restore utility for Docker/Podman",
 	Long:    "Backup and restore Docker/Podman volumes using the REST API, with optional gzip compression.",
-	Version: hftfx.White(fmt.Sprintf("2.3.0-%s (2026.08.03), GO version = v%s", runtime.GOARCH, strings.TrimPrefix(runtime.Version(), "go"))),
+	Version: hftfx.White(fmt.Sprintf("2.3.1-%s (2026.08.09), GO version = v%s", runtime.GOARCH, strings.TrimPrefix(runtime.Version(), "go"))),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if types.LogLevel != "none" {
 			//if err := hfl.Init(filepath.Join(os.Getenv("HOME"), ".local", "state", "dvol.log"), hfl.ParseLevel(types.LogLevel), "USER", false, true); err != nil {
