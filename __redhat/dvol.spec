@@ -51,6 +51,12 @@ install -Dpm 0755 %{_builddir}/%{_binaryname} %{buildroot}%{_bindir}/%{_binaryna
 
 
 %changelog
+* Sun Aug 09 2026 Binary package builder <builder@famillegratton.net> 2.3.1-1
+- Merge branch 'develop'
+- version bump
+- Merge branch 'develop'
+- Fixed wrong path being backed up
+
 * Thu Jun 04 2026 Binary package builder <builder@famillegratton.net> 2.25.00-0
 - fixed mistyped filename
 - Removed missing install scripts
