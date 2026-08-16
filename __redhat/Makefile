@@ -8,6 +8,12 @@ DEST      := /data
 REPOROOT  := $(shell git rev-parse --show-toplevel)
 NEXUSREPO := dnfLocal
 TAG       := v$(VERSION)
+# Branch the changelog commit is recorded on -- not the branch being built.
+CL_BRANCH ?= develop
+# Specfile path relative to the repository root, to address it inside another
+# branch's tree. Pathspecs resolve against the current directory, which is why
+# commitcl needs --full-tree.
+SPECREL   := $(shell git ls-files --full-name -- $(SPEC))
 
 .PHONY: tag release tarball check-tags changelog rpm rpmcl upload commitcl clean
 
@@ -47,13 +53,44 @@ rpmcl: tarball changelog
 upload:
 	/opt/bin/nxtools upload -r $(NEXUSREPO) $(DEST)/$(NAME)-$(VERSION)-$(RELEASE).x86_64.rpm
 
+# Record the changelog on $(CL_BRANCH), not on the branch that was built: a
+# push to main retriggers the whole build through the Forgejo hook, a push to
+# develop is dropped at its branch filter.
+#
+# Assembled with plumbing because the workspace has to stay on main mid-build,
+# and only the new %changelog block crosses over -- copying this branch's
+# specfile wholesale would revert whatever develop has bumped since. The
+# duplicate guard therefore runs against develop's copy, not ours.
+#
+# The parent is the tip just fetched, so the push is always a fast-forward; if
+# $(CL_BRANCH) moves inside that window it is rejected and the build goes red.
+# Every step is idempotent, so re-running is the fix.
 commitcl:
-	@git add ${SPEC}
-	@if git diff --cached --quiet -- ${SPEC}; then \
-	  echo "NOTE: no staged changes to $(SPEC), skipping changelog commit."; \
-	else \
-	  git commit -m "chore: update changelog for $(VERSION)-$(RELEASE)"; \
-	fi
+	@set -eu; \
+	git fetch -q origin $(CL_BRANCH) \
+	  || { echo "ERROR: cannot fetch origin/$(CL_BRANCH)" >&2; exit 1; }; \
+	base=$$(git rev-parse FETCH_HEAD); \
+	meta=$$(git ls-tree --full-tree "$$base" -- "$(SPECREL)"); \
+	[ -n "$$meta" ] \
+	  || { echo "ERROR: $(SPECREL) does not exist on $(CL_BRANCH)" >&2; exit 1; }; \
+	mode=$$(echo "$$meta" | awk '{print $$1}'); \
+	oldblob=$$(echo "$$meta" | awk '{print $$3}'); \
+	tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	git cat-file blob "$$oldblob" > "$$tmp/spec"; \
+	$(REPOROOT)/__redhat/updateChangelog.sh --apply "$$tmp/spec"; \
+	newblob=$$(git hash-object -w "$$tmp/spec"); \
+	if [ "$$newblob" = "$$oldblob" ]; then \
+	  echo "NOTE: $(CL_BRANCH) already carries the changelog for $(VERSION)-$(RELEASE), nothing to commit."; \
+	  exit 0; \
+	fi; \
+	export GIT_INDEX_FILE="$$tmp/index"; \
+	git read-tree "$$base"; \
+	git update-index --add --cacheinfo "$$mode,$$newblob,$(SPECREL)"; \
+	tree=$$(git write-tree); \
+	commit=$$(git commit-tree "$$tree" -p "$$base" \
+	  -m "chore: update changelog for $(VERSION)-$(RELEASE)"); \
+	git push origin "$$commit:refs/heads/$(CL_BRANCH)"; \
+	echo "NOTE: changelog for $(VERSION)-$(RELEASE) pushed to $(CL_BRANCH) as $${commit}."
 
 clean:
 	rm -f  $(SOURCES)/$(NAME)-$(VERSION).tar.gz
@@ -71,9 +108,10 @@ tag:
 	  git push origin $(TAG); \
 	fi
 
+# No `git push`: commitcl pushes its own commit straight to $(CL_BRANCH), and
+# nothing else here commits to the built branch.
 release:
 	${MAKE} rpmcl
 	${MAKE} commitcl
-	git push
 	${MAKE} upload
 	${MAKE} tag
